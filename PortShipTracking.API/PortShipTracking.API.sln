@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortShipTracking.API", "PortShipTracking.API.csproj", "{53206601-3F2C-5879-E608-0871B7F1374E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{53206601-3F2C-5879-E608-0871B7F1374E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53206601-3F2C-5879-E608-0871B7F1374E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53206601-3F2C-5879-E608-0871B7F1374E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53206601-3F2C-5879-E608-0871B7F1374E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {560FF0E3-AF90-4C22-B3F0-AADF127075FB}
+	EndGlobalSection
+EndGlobal

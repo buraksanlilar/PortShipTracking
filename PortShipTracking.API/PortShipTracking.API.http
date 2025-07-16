@@ -1,0 +1,6 @@
+@PortShipTracking.API_HostAddress = http://localhost:5026
+
+GET {{PortShipTracking.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
