@@ -1,6 +1,6 @@
 export interface ShipCrewAssignment { 
-    AssignmentId: number; // Unique identifier for the assignment
-    ShipId: number; // Foreign key to Ship
-    CrewId: number; // Foreign key to Crew
-    AssignmentDate: string; // Date of the assignment
+    assignmentId: number; // Unique identifier for the assignment
+    shipId: number; // Foreign key to Ship
+    crewId: number; // Foreign key to Crew
+    assignmentDate: string; // Date of the assignment
 }

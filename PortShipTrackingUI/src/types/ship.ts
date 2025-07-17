@@ -1,8 +1,8 @@
 export interface Ship {
-    ShipId: number;
-    Name: string;
-    IMO: string;
-    Type: string;
-    Flag: string;
-    YearBuilt: number;
+    shipId: number;
+    name: string;
+    imo: string;
+    type: string;
+    flag: string;
+    yearBuilt: number;
 }

@@ -1,6 +1,6 @@
 export interface Port {
-    PortId: number;
-    Name: string;
-    Country: string;
-    City: string;
+    portId: number;
+    name: string;
+    country: string;
+    city: string;
 }

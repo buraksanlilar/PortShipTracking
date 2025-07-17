@@ -20,15 +20,7 @@ import {
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
 import api from "../../api/api";
-
-interface Ship {
-  shipId: number;
-  name: string;
-  imo: string;
-  type: string;
-  flag: string;
-  yearBuilt: number;
-}
+import type { Ship } from "../../types/ship";
 
 type Order = "asc" | "desc";
 

@@ -34,7 +34,7 @@ const shipService = {
 
   updateShip: async (updatedShip: Ship) => {
     try {
-      const response = await api.put<Ship>(`/Ships/${updatedShip.ShipId}`, updatedShip);
+      const response = await api.put<Ship>(`/Ships/${updatedShip.shipId}`, updatedShip);
       return response.data;
     } catch (error) {
       console.error("Error updating Ship:", error);
