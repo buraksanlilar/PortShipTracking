@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
-import api from "../../api/Axios";
+import api from "../../api/api";
 
 interface Ship {
   shipId: number;
