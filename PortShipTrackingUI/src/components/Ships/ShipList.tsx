@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
-import api from "../../api/api";
+import shipService from "../../api/shipService";
 import type { Ship } from "../../types/ship";
 
 type Order = "asc" | "desc";
@@ -99,7 +99,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 }
 
 export default function ShipList() {
-  const [ships, setShips] = useState<Ship[]>([]);
+  const [shipList, setShipList] = useState<Ship[]>([]);
   const [order, setOrder] = useState<Order>("asc");
   const [orderBy, setOrderBy] = useState<keyof Ship>("shipId");
   const [page, setPage] = useState(0);
@@ -107,9 +107,7 @@ export default function ShipList() {
   const [dense, setDense] = useState(false);
 
   useEffect(() => {
-    api.get("/Ships").then((res) => {
-      setShips(res.data);
-    });
+    shipService.getShips().then((ships) => setShipList(ships));
   }, []);
 
   const handleRequestSort = (
@@ -136,7 +134,7 @@ export default function ShipList() {
     setDense(event.target.checked);
   };
 
-  const visibleRows = [...ships]
+  const visibleRows = [...shipList]
     .sort(getComparator(order, orderBy))
     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -177,7 +175,7 @@ export default function ShipList() {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={ships.length}
+          count={shipList.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

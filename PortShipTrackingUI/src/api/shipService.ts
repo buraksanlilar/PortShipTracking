@@ -12,7 +12,7 @@ const shipService = {
       throw error;
     }
   },
-    getShipById: async (ShipId: number) => {
+  getShipById: async (ShipId: number) => {
         try {
         const response = await api.get<Ship>(`/Ships/${ShipId}`);
         return response.data;
