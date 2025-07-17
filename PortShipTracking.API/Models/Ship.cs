@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PortShipTracking.API.Models;
+//github deneme
 
 public class Ship
 {
