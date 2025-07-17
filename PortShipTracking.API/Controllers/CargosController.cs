@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PortShipTracking.API.Dtos.CargoDto;
 using PortShipTracking.API.Models;
 using PortShipTracking.API.Services.CargoService;
-
+//cargo
 namespace PortShipTracking.API.Controllers;
 
 [ApiController]
