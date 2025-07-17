@@ -1,0 +1,13 @@
+# Backend
+PortShipTracking.API/bin/
+PortShipTracking.API/obj/
+PortShipTracking.API/*.db
+PortShipTracking.API/.vs/
+
+# Frontend
+port-ship-tracking-ui/node_modules/
+port-ship-tracking-ui/dist/
+
+# Genel
+.env
+.DS_Store
