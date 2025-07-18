@@ -16,10 +16,13 @@ import {
   TextField,
   DialogActions,
   Snackbar,
+  FormControl,
 } from "@mui/material";
 import type { Ship } from "../types/ship";
-import shipService from "../api/shipService";
+import ReactFlagsSelect from "react-flags-select";
 
+// important import from shipService
+import shipService from "../api/shipService";
 const { getShips, addShip, updateShip, deleteShip } = shipService;
 
 const defaultForm: Ship = {
@@ -87,13 +90,58 @@ export default function ShipPage() {
   };
 
   const handleSave = async () => {
-    // IMO benzersiz olmalı (sadece yeni gemide kontrol edilir)
-    if (!isEdit && ships.some((s) => s.imo.trim() === form.imo.trim())) {
+    if (form.imo.trim() === "") {
+      setSnackbarMessage("❌ IMO number is required.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.imo.length > 10) {
+      setSnackbarMessage("❌ IMO number cannot exceed 10 characters.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.name.trim() === "") {
+      setSnackbarMessage("❌ Ship name is required.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.name.length > 100) {
+      setSnackbarMessage("❌ Ship name cannot exceed 100 characters.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.type.trim() === "") {
+      setSnackbarMessage("❌ Ship type is required.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.type.length > 50) {
+      setSnackbarMessage("❌ Ship type cannot exceed 50 characters.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.flag === "") {
+      setSnackbarMessage("❌ Please select a flag.");
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.yearBuilt < 1800 || form.yearBuilt > new Date().getFullYear()) {
+      setSnackbarMessage(
+        "❌ Year built must be between 1800 and the current year."
+      );
+      setSnackbarOpen(true);
+      return;
+    }
+    // IMO benzersiz olmalı (hem yeni gemide hem de editlenirken değişirse kontrol edilir)
+    if (
+      ships.some(
+        (s) => s.shipId !== form.shipId && s.imo.trim() === form.imo.trim()
+      )
+    ) {
       setSnackbarMessage("❌ A ship with this IMO number already exists.");
       setSnackbarOpen(true);
       return;
     }
-
     try {
       if (isEdit) {
         await updateShip(form.shipId, form);
@@ -129,7 +177,7 @@ export default function ShipPage() {
           Edit
         </Button>
         <Button
-          variant="outlined"
+          variant="contained"
           color="error"
           onClick={handleDelete}
           disabled={selectedIds.length === 0}
@@ -201,14 +249,34 @@ export default function ShipPage() {
             fullWidth
             margin="dense"
           />
-          <TextField
-            label="Flag"
-            name="flag"
-            value={form.flag}
-            onChange={handleFormChange}
-            fullWidth
-            margin="dense"
-          />
+          <FormControl fullWidth margin="dense">
+            <Box
+              sx={{
+                mt: 0.5,
+                ".ReactFlagsSelect-module_selectBtn__": {
+                  border: "1px solid rgba(0, 0, 0, 0.23)",
+                  borderRadius: "4px",
+                  padding: "8.5px 14px",
+                  fontSize: "16px",
+                  width: "100%",
+                },
+              }}
+            >
+              <ReactFlagsSelect
+                selected={form.flag}
+                onSelect={(code) =>
+                  handleFormChange({
+                    target: {
+                      name: "flag",
+                      value: code,
+                    },
+                  } as React.ChangeEvent<HTMLInputElement>)
+                }
+                searchable
+                placeholder="Select Flag"
+              />
+            </Box>
+          </FormControl>
           <TextField
             label="Year Built"
             name="yearBuilt"
