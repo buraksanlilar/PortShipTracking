@@ -32,7 +32,7 @@ const shipService = {
     }
   },
 
-  updateShip: async (updatedShip: Ship) => {
+  updateShip: async (_shipId: number, updatedShip: Ship) => {
     try {
       const response = await api.put<Ship>(`/Ships/${updatedShip.shipId}`, updatedShip);
       return response.data;
