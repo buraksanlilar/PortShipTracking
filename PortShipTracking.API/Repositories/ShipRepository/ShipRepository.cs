@@ -37,6 +37,31 @@ namespace PortShipTracking.API.Repositories.ShipRepository
         {
             _context.Ships.Remove(ship);
         }
+        public async Task<List<Ship>> SearchAsync(int? shipId, string? name, string? imo, string? type, string? flag, int? yearBuilt)
+        {
+            var query = _context.Ships.AsQueryable();
+
+            if (shipId.HasValue)
+                query = query.Where(s => s.ShipId == shipId.Value);
+
+            if (!string.IsNullOrWhiteSpace(name))
+                query = query.Where(s => s.Name != null && EF.Functions.Like(s.Name, $"%{name}%"));
+
+            if (!string.IsNullOrWhiteSpace(imo))
+                query = query.Where(s => s.IMO != null && EF.Functions.Like(s.IMO, $"%{imo}%"));
+
+            if (!string.IsNullOrWhiteSpace(type))
+                query = query.Where(s => s.Type != null && EF.Functions.Like(s.Type, $"%{type}%"));
+
+            if (!string.IsNullOrWhiteSpace(flag))
+                query = query.Where(s => s.Flag != null && EF.Functions.Like(s.Flag, $"%{flag}%"));
+
+            if (yearBuilt.HasValue)
+                query = query.Where(s => s.YearBuilt == yearBuilt.Value);
+
+            return await query.ToListAsync();
+        }
+
 
         public async Task SaveAsync()
         {

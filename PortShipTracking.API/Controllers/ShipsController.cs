@@ -63,4 +63,17 @@ public class ShipsController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("search")]
+    public async Task<ActionResult<List<Ship>>> Search(
+    [FromQuery] int? shipId,
+    [FromQuery] string? name,
+    [FromQuery] string? imo,
+    [FromQuery] string? type,
+    [FromQuery] string? flag,
+    [FromQuery] int? yearBuilt)
+    {
+        var result = await _shipService.SearchAsync(shipId, name, imo, type, flag, yearBuilt);
+        return Ok(result);
+    }
+
 }

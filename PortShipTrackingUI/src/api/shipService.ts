@@ -50,6 +50,25 @@ const shipService = {
       throw error;
     }
   },
+  searchShips: async (filters: Partial<Ship>) => {
+    try {
+      const params = new URLSearchParams();
+  
+      if (filters.shipId !== undefined) params.append("shipId", filters.shipId.toString());
+      if (filters.name) params.append("name", filters.name);
+      if (filters.imo) params.append("imo", filters.imo);
+      if (filters.type) params.append("type", filters.type);
+      if (filters.flag) params.append("flag", filters.flag);
+      if (filters.yearBuilt !== undefined) params.append("yearBuilt", filters.yearBuilt.toString());
+  
+      const response = await api.get<Ship[]>(`/Ships/search?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error searching Ships:", error);
+      throw error;
+    }
+  },
+  
 };        
 
 

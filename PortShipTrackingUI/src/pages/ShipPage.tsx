@@ -20,10 +20,8 @@ import {
 } from "@mui/material";
 import type { Ship } from "../types/ship";
 import ReactFlagsSelect from "react-flags-select";
-
-// important import from shipService
 import shipService from "../api/shipService";
-const { getShips, addShip, updateShip, deleteShip } = shipService;
+const { getShips, addShip, updateShip, deleteShip, searchShips } = shipService;
 
 const defaultForm: Ship = {
   shipId: 0,
@@ -42,6 +40,7 @@ export default function ShipPage() {
   const [isEdit, setIsEdit] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [filters, setFilters] = useState<Partial<Ship>>({});
 
   useEffect(() => {
     loadShips();
@@ -89,6 +88,21 @@ export default function ShipPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFilterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+
+    const updatedFilters = {
+      ...filters,
+      [name]:
+        type === "number" ? (value === "" ? undefined : Number(value)) : value,
+    };
+
+    setFilters(updatedFilters);
+
+    const res = await searchShips(updatedFilters);
+    setShips(res);
+  };
+
   const handleSave = async () => {
     if (form.imo.trim() === "") {
       setSnackbarMessage("❌ IMO number is required.");
@@ -132,7 +146,6 @@ export default function ShipPage() {
       setSnackbarOpen(true);
       return;
     }
-    // IMO benzersiz olmalı (hem yeni gemide hem de editlenirken değişirse kontrol edilir)
     if (
       ships.some(
         (s) => s.shipId !== form.shipId && s.imo.trim() === form.imo.trim()
@@ -163,6 +176,55 @@ export default function ShipPage() {
   return (
     <Box p={3}>
       <h1>Ship Management</h1>
+
+      {/* Search Filters */}
+      <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
+        <TextField
+          label="Ship ID"
+          name="shipId"
+          type="number"
+          size="small"
+          value={filters.shipId ?? ""}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          label="IMO"
+          name="imo"
+          size="small"
+          value={filters.imo ?? ""}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          label="Name"
+          name="name"
+          size="small"
+          value={filters.name ?? ""}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          label="Type"
+          name="type"
+          size="small"
+          value={filters.type ?? ""}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          label="Flag"
+          name="flag"
+          size="small"
+          value={filters.flag ?? ""}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          label="Year Built"
+          name="yearBuilt"
+          type="number"
+          size="small"
+          value={filters.yearBuilt ?? ""}
+          onChange={handleFilterChange}
+        />
+      </Box>
+
       <Box mb={2}>
         <Button variant="contained" color="primary" onClick={handleNew}>
           New
@@ -295,7 +357,6 @@ export default function ShipPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

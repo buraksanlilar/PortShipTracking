@@ -57,5 +57,11 @@ namespace PortShipTracking.API.Services.ShipService
             await _repository.SaveAsync();
             return true;
         }
+
+        public async Task<List<Ship>> SearchAsync(int? shipId, string? name, string? imo, string? type, string? flag, int? yearBuilt)
+        {
+            return await _repository.SearchAsync(shipId, name, imo, type, flag, yearBuilt);
+        }
+
     }
 }

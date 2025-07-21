@@ -9,6 +9,7 @@ namespace PortShipTracking.API.Repositories.ShipRepository
         Task AddAsync(Ship ship);
         void Update(Ship ship);
         void Delete(Ship ship);
+        Task<List<Ship>> SearchAsync(int? shipId, string? name, string? imo, string? type, string? flag, int? yearBuilt);
         Task SaveAsync();
     }
 }
