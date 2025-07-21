@@ -17,11 +17,19 @@ import {
   DialogActions,
   Snackbar,
   FormControl,
+  TablePagination,
+  DialogContentText,
 } from "@mui/material";
 import type { Ship } from "../types/ship";
 import ReactFlagsSelect from "react-flags-select";
 import shipService from "../api/shipService";
-const { getShips, addShip, updateShip, deleteShip, searchShips } = shipService;
+
+const {
+  searchPagedShips, // yeni eklenecek fonksiyon
+  addShip,
+  updateShip,
+  deleteShip,
+} = shipService;
 
 const defaultForm: Ship = {
   shipId: 0,
@@ -36,20 +44,26 @@ export default function ShipPage() {
   const [ships, setShips] = useState<Ship[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [open, setOpen] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
   const [form, setForm] = useState<Ship>(defaultForm);
   const [isEdit, setIsEdit] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [filters, setFilters] = useState<Partial<Ship>>({});
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const loadPagedShips = React.useCallback(async () => {
+    const res = await searchPagedShips(page + 1, rowsPerPage, filters);
+    setShips(res.items);
+    setTotalCount(res.totalCount);
+  }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
-    loadShips();
-  }, []);
-
-  const loadShips = async () => {
-    const res = await getShips();
-    setShips(res);
-  };
+    loadPagedShips();
+  }, [loadPagedShips]);
 
   const handleCheckbox = (id: number) => {
     setSelectedIds((prev) =>
@@ -57,12 +71,45 @@ export default function ShipPage() {
     );
   };
 
+  const handleOpenDeleteConfirmation = () => {
+    setOpenDelete(true);
+  };
+  const handleCloseDeleteConfirmation = () => {
+    setOpenDelete(false);
+  };
+  const handleDeleteConfirmation = () => {
+    handleDelete();
+    handleCloseDeleteConfirmation();
+  };
+
+  const handleOpenUpdateConfirmation = () => {
+    setOpenUpdate(true);
+  };
+  const handleCloseUpdateConfirmation = () => {
+    setOpenUpdate(false);
+    return;
+  };
+  const handleUpdateConfirmation = async () => {
+    try {
+      await updateShip(form.shipId, form);
+      setSnackbarMessage("✅ Ship updated successfully.");
+      setOpen(false);
+      setSelectedIds([]);
+      loadPagedShips();
+    } catch {
+      setSnackbarMessage("❌ An error occurred while saving.");
+    } finally {
+      setSnackbarOpen(true);
+      handleCloseUpdateConfirmation();
+    }
+  };
+
   const handleDelete = async () => {
     for (const id of selectedIds) {
       await deleteShip(id);
     }
     setSelectedIds([]);
-    loadShips();
+    loadPagedShips();
     setSnackbarMessage("✅ Ship(s) deleted successfully.");
     setSnackbarOpen(true);
   };
@@ -88,19 +135,15 @@ export default function ShipPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFilterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-
     const updatedFilters = {
       ...filters,
       [name]:
         type === "number" ? (value === "" ? undefined : Number(value)) : value,
     };
-
     setFilters(updatedFilters);
-
-    const res = await searchShips(updatedFilters);
-    setShips(res);
+    setPage(0);
   };
 
   const handleSave = async () => {
@@ -114,11 +157,18 @@ export default function ShipPage() {
       setSnackbarOpen(true);
       return;
     }
+    // Remove invalid comparison or replace with a valid check
+    if (!isEdit && ships.some((ship) => ship.imo === form.imo.trim())) {
+      setSnackbarMessage("❌ IMO number already exists.");
+      setSnackbarOpen(true);
+      return;
+    }
     if (form.name.trim() === "") {
       setSnackbarMessage("❌ Ship name is required.");
       setSnackbarOpen(true);
       return;
     }
+
     if (form.name.length > 100) {
       setSnackbarMessage("❌ Ship name cannot exceed 100 characters.");
       setSnackbarOpen(true);
@@ -140,36 +190,25 @@ export default function ShipPage() {
       return;
     }
     if (form.yearBuilt < 1800 || form.yearBuilt > new Date().getFullYear()) {
-      setSnackbarMessage(
-        "❌ Year built must be between 1800 and the current year."
-      );
+      setSnackbarMessage("❌ Invalid year built.");
       setSnackbarOpen(true);
       return;
     }
-    if (
-      ships.some(
-        (s) => s.shipId !== form.shipId && s.imo.trim() === form.imo.trim()
-      )
-    ) {
-      setSnackbarMessage("❌ A ship with this IMO number already exists.");
-      setSnackbarOpen(true);
-      return;
+    if (isEdit) {
+      handleOpenUpdateConfirmation();
     }
-    try {
-      if (isEdit) {
-        await updateShip(form.shipId, form);
-        setSnackbarMessage("✅ Ship updated successfully.");
-      } else {
+    if (!isEdit) {
+      try {
         await addShip(form);
         setSnackbarMessage("✅ Ship added successfully.");
+        setOpen(false);
+        setSelectedIds([]);
+        loadPagedShips();
+      } catch {
+        setSnackbarMessage("❌ An error occurred while saving.");
+      } finally {
+        setSnackbarOpen(true);
       }
-      setOpen(false);
-      setSelectedIds([]);
-      loadShips();
-    } catch {
-      setSnackbarMessage("❌ An error occurred while saving.");
-    } finally {
-      setSnackbarOpen(true);
     }
   };
 
@@ -177,73 +216,91 @@ export default function ShipPage() {
     <Box p={3}>
       <h1>Ship Management</h1>
 
-      {/* Search Filters */}
+      {/* Filters */}
       <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
-        <TextField
-          label="Ship ID"
-          name="shipId"
-          type="number"
-          size="small"
-          value={filters.shipId ?? ""}
-          onChange={handleFilterChange}
-        />
-        <TextField
-          label="IMO"
-          name="imo"
-          size="small"
-          value={filters.imo ?? ""}
-          onChange={handleFilterChange}
-        />
-        <TextField
-          label="Name"
-          name="name"
-          size="small"
-          value={filters.name ?? ""}
-          onChange={handleFilterChange}
-        />
-        <TextField
-          label="Type"
-          name="type"
-          size="small"
-          value={filters.type ?? ""}
-          onChange={handleFilterChange}
-        />
-        <TextField
-          label="Flag"
-          name="flag"
-          size="small"
-          value={filters.flag ?? ""}
-          onChange={handleFilterChange}
-        />
-        <TextField
-          label="Year Built"
-          name="yearBuilt"
-          type="number"
-          size="small"
-          value={filters.yearBuilt ?? ""}
-          onChange={handleFilterChange}
-        />
+        {[
+          { label: "Ship ID", name: "shipId", type: "number" },
+          { label: "IMO", name: "imo" },
+          { label: "Name", name: "name" },
+          { label: "Type", name: "type" },
+          { label: "Flag", name: "flag" },
+          { label: "Year Built", name: "yearBuilt", type: "number" },
+        ].map((field) => (
+          <TextField
+            key={field.name}
+            label={field.label}
+            name={field.name}
+            type={field.type || "text"}
+            size="small"
+            value={(filters as Partial<Ship>)[field.name as keyof Ship] ?? ""}
+            onChange={handleFilterChange}
+          />
+        ))}
       </Box>
+      <Dialog
+        open={openDelete}
+        onClose={handleCloseDeleteConfirmation}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to delete those Ships?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Warning: Deleting these ships may affect related data and system
+            functionality. Please proceed with caution.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteConfirmation}>Disagree</Button>
+          <Button onClick={handleDeleteConfirmation} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openUpdate}
+        onClose={handleCloseUpdateConfirmation}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to update the Ship?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Warning: Updating this ships may affect related data and system
+            functionality. Please proceed with caution.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseUpdateConfirmation}>Disagree</Button>
+          <Button onClick={handleUpdateConfirmation} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Box mb={2}>
-        <Button variant="contained" color="primary" onClick={handleNew}>
+        <Button variant="contained" onClick={handleNew}>
           New
         </Button>
         <Button
           variant="contained"
-          color="secondary"
           onClick={handleEdit}
           disabled={selectedIds.length !== 1}
-          style={{ marginLeft: 8 }}
+          sx={{ ml: 1 }}
         >
           Edit
         </Button>
         <Button
           variant="contained"
           color="error"
-          onClick={handleDelete}
+          onClick={handleOpenDeleteConfirmation}
           disabled={selectedIds.length === 0}
-          style={{ marginLeft: 8 }}
+          sx={{ ml: 1 }}
         >
           Delete
         </Button>
@@ -256,7 +313,7 @@ export default function ShipPage() {
               <TableCell />
               <TableCell>Ship ID</TableCell>
               <TableCell>IMO</TableCell>
-              <TableCell>Ship Name</TableCell>
+              <TableCell>Name</TableCell>
               <TableCell>Type</TableCell>
               <TableCell>Flag</TableCell>
               <TableCell>Year Built</TableCell>
@@ -283,7 +340,19 @@ export default function ShipPage() {
         </Table>
       </TableContainer>
 
-      {/* Add/Edit Dialog */}
+      <TablePagination
+        component="div"
+        count={totalCount}
+        page={page}
+        onPageChange={(_e, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(parseInt(e.target.value, 10));
+          setPage(0);
+        }}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+      />
+
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>{isEdit ? "Edit Ship" : "Add New Ship"}</DialogTitle>
         <DialogContent>

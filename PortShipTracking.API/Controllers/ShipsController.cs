@@ -75,5 +75,34 @@ public class ShipsController : ControllerBase
         var result = await _shipService.SearchAsync(shipId, name, imo, type, flag, yearBuilt);
         return Ok(result);
     }
+    [HttpGet("paged")]
+    public async Task<ActionResult<IEnumerable<Ship>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var ships = await _shipService.GetPagedAsync(page, pageSize);
+        return Ok(ships);
+    }
+    [HttpGet("count")]
+    public async Task<ActionResult<int>> GetTotalCount()
+    {
+        int count = await _shipService.GetTotalCountAsync();
+        return Ok(count);
+    }
+    [HttpGet("searchPaged")]
+    public async Task<ActionResult<object>> SearchPaged(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] int? shipId = null,
+    [FromQuery] string? name = null,
+    [FromQuery] string? imo = null,
+    [FromQuery] string? type = null,
+    [FromQuery] string? flag = null,
+    [FromQuery] int? yearBuilt = null)
+    {
+        var result = await _shipService.SearchPagedAsync(page, pageSize, shipId, name, imo, type, flag, yearBuilt);
+        return Ok(result);
+    }
+
+
+
 
 }

@@ -61,6 +61,55 @@ namespace PortShipTracking.API.Repositories.ShipRepository
 
             return await query.ToListAsync();
         }
+        public async Task<List<Ship>> GetPagedAsync(int page, int pageSize)
+        {
+            return await _context.Ships
+                .OrderBy(s => s.ShipId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+        public async Task<int> GetTotalCountAsync()
+        {
+            return await _context.Ships.CountAsync();
+        }
+        public async Task<object> SearchPagedAsync(int page, int pageSize, int? shipId, string? name, string? imo, string? type, string? flag, int? yearBuilt)
+        {
+            var query = _context.Ships.AsQueryable();
+
+            if (shipId.HasValue)
+                query = query.Where(s => s.ShipId == shipId.Value);
+
+            if (!string.IsNullOrWhiteSpace(name))
+                query = query.Where(s => s.Name != null && EF.Functions.Like(s.Name, $"%{name}%"));
+
+            if (!string.IsNullOrWhiteSpace(imo))
+                query = query.Where(s => s.IMO != null && EF.Functions.Like(s.IMO, $"%{imo}%"));
+
+            if (!string.IsNullOrWhiteSpace(type))
+                query = query.Where(s => s.Type != null && EF.Functions.Like(s.Type, $"%{type}%"));
+
+            if (!string.IsNullOrWhiteSpace(flag))
+                query = query.Where(s => s.Flag != null && EF.Functions.Like(s.Flag, $"%{flag}%"));
+
+            if (yearBuilt.HasValue)
+                query = query.Where(s => s.YearBuilt == yearBuilt.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(s => s.ShipId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new
+            {
+                TotalCount = totalCount,
+                Items = items
+            };
+        }
+
 
 
         public async Task SaveAsync()

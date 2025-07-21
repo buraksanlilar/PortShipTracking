@@ -62,6 +62,17 @@ namespace PortShipTracking.API.Services.ShipService
         {
             return await _repository.SearchAsync(shipId, name, imo, type, flag, yearBuilt);
         }
+        public async Task<List<Ship>> GetPagedAsync(int page, int pageSize)
+        {
+            return await _repository.GetPagedAsync(page, pageSize);
+        }
+        public Task<int> GetTotalCountAsync() => _repository.GetTotalCountAsync();
+        public async Task<object> SearchPagedAsync(int page, int pageSize, int? shipId, string? name, string? imo, string? type, string? flag, int? yearBuilt)
+        {
+            return await _repository.SearchPagedAsync(page, pageSize, shipId, name, imo, type, flag, yearBuilt);
+        }
+
+
 
     }
 }
