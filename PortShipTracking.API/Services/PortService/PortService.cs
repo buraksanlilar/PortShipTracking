@@ -53,5 +53,10 @@ namespace PortShipTracking.API.Services.PortService
             await _repository.SaveAsync();
             return true;
         }
+        public async Task<object> SearchPagedAsync(int page, int pageSize, int? portId, string? name, string? country, string? city)
+        {
+            return await _repository.SearchPagedAsync(page, pageSize, portId, name, country, city);
+        }
+
     }
 }

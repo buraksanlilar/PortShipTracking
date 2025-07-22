@@ -11,6 +11,15 @@ const shipService = {
       throw error;
     }
   },
+  getShipById: async (shipId: number) => {
+    try {
+      const response = await api.get<Ship>(`/Ships/${shipId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching Ship by ID:", error);
+      throw error;
+    }
+  },
   addShip: async (newShip: Ship) => {
     try {
       const response = await api.post<Ship>("/Ships", newShip);

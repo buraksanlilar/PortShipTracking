@@ -66,4 +66,18 @@ public class PortsController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("searchPaged")]
+    public async Task<ActionResult<object>> SearchPaged(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] int? portId = null,
+    [FromQuery] string? name = null,
+    [FromQuery] string? country = null,
+    [FromQuery] string? city = null
+    )
+    {
+        var result = await _portService.SearchPagedAsync(page, pageSize, portId, name, country, city);
+        return Ok(result);
+    }
+
 }

@@ -24,12 +24,7 @@ import type { Ship } from "../types/ship";
 import ReactFlagsSelect from "react-flags-select";
 import shipService from "../api/shipService";
 
-const {
-  searchPagedShips, // yeni eklenecek fonksiyon
-  addShip,
-  updateShip,
-  deleteShip,
-} = shipService;
+const { searchPagedShips, addShip, updateShip, deleteShip } = shipService;
 
 const defaultForm: Ship = {
   shipId: 0,

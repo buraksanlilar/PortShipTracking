@@ -6,22 +6,32 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import shipService from "../api/shipService";
 import { useEffect, useState } from "react";
 import type { Ship } from "../types/ship";
+import type { Port } from "../types/port";
+import { useNavigate } from "react-router-dom";
+import portService from "../api/portService";
 
 const { getShips } = shipService;
-
+const { getPorts } = portService;
 function LandingPage() {
   const [ships, setShips] = useState<Ship[]>([]);
+  const [ports, setPorts] = useState<Port[]>([]);
 
   useEffect(() => {
     loadShips(); // bu fonksiyon içinde getShips çağrılıyor
+    loadPorts(); // bu fonksiyon içinde getPorts çağrılıyor
   }, []);
 
   const loadShips = async () => {
     const res = await getShips();
     setShips(res);
   };
-
+  const loadPorts = async () => {
+    const res = await getPorts();
+    setPorts(res);
+  };
+  const navigate = useNavigate();
   const shipNumber = ships.length; // Toplam gemi sayısını al
+  const portNumber = ports.length; // Toplam liman sayısını al
   return (
     <Box>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -40,8 +50,14 @@ function LandingPage() {
       >
         {/* Card 1 */}
         <Paper
+          onClick={() => navigate("/shipPage")}
           elevation={2}
-          sx={{ flex: "1 1 200px", p: 3, textAlign: "center" }}
+          sx={{
+            flex: "1 1 200px",
+            p: 3,
+            textAlign: "center",
+            "&:hover": { cursor: "pointer", backgroundColor: "#f0f0f0" },
+          }}
         >
           <DirectionsBoatIcon color="primary" fontSize="large" />
           <Typography variant="h5">{shipNumber}</Typography>
@@ -50,18 +66,30 @@ function LandingPage() {
 
         {/* Card 2 */}
         <Paper
+          onClick={() => navigate("/portPage")}
           elevation={2}
-          sx={{ flex: "1 1 200px", p: 3, textAlign: "center" }}
+          sx={{
+            flex: "1 1 200px",
+            p: 3,
+            textAlign: "center",
+            "&:hover": { cursor: "pointer", backgroundColor: "#f0f0f0" },
+          }}
         >
           <PlaceIcon sx={{ color: "green" }} fontSize="large" />
-          <Typography variant="h5">24</Typography>
+          <Typography variant="h5">{portNumber}</Typography>
           <Typography variant="subtitle2">Active Ports</Typography>
         </Paper>
 
         {/* Card 3 */}
         <Paper
+          onClick={() => navigate("/crewMemberPage")}
           elevation={2}
-          sx={{ flex: "1 1 200px", p: 3, textAlign: "center" }}
+          sx={{
+            flex: "1 1 200px",
+            p: 3,
+            textAlign: "center",
+            "&:hover": { cursor: "pointer", backgroundColor: "#f0f0f0" },
+          }}
         >
           <PeopleIcon sx={{ color: "orange" }} fontSize="large" />
           <Typography variant="h5">1,247</Typography>
@@ -70,8 +98,14 @@ function LandingPage() {
 
         {/* Card 4 */}
         <Paper
+          onClick={() => navigate("/shipVisitPage")}
           elevation={2}
-          sx={{ flex: "1 1 200px", p: 3, textAlign: "center" }}
+          sx={{
+            flex: "1 1 200px",
+            p: 3,
+            textAlign: "center",
+            "&:hover": { cursor: "pointer", backgroundColor: "#f0f0f0" },
+          }}
         >
           <LocalShippingIcon sx={{ color: "purple" }} fontSize="large" />
           <Typography variant="h5">89</Typography>
