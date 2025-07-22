@@ -7,18 +7,24 @@ import shipService from "../api/shipService";
 import { useEffect, useState } from "react";
 import type { Ship } from "../types/ship";
 import type { Port } from "../types/port";
+import type { ShipVisit } from "../types/shipVisit";
 import { useNavigate } from "react-router-dom";
 import portService from "../api/portService";
+import shipVisitService from "../api/shipVisitService";
 
 const { getShips } = shipService;
 const { getPorts } = portService;
+const { getShipVisits } = shipVisitService;
+
 function LandingPage() {
   const [ships, setShips] = useState<Ship[]>([]);
   const [ports, setPorts] = useState<Port[]>([]);
+  const [shipVisits, setShipVisits] = useState<ShipVisit[]>([]);
 
   useEffect(() => {
     loadShips(); // bu fonksiyon içinde getShips çağrılıyor
     loadPorts(); // bu fonksiyon içinde getPorts çağrılıyor
+    loadShipVisits();
   }, []);
 
   const loadShips = async () => {
@@ -28,6 +34,10 @@ function LandingPage() {
   const loadPorts = async () => {
     const res = await getPorts();
     setPorts(res);
+  };
+  const loadShipVisits = async () => {
+    const res = await getShipVisits();
+    setShipVisits(res);
   };
   const navigate = useNavigate();
   const shipNumber = ships.length; // Toplam gemi sayısını al
@@ -108,7 +118,7 @@ function LandingPage() {
           }}
         >
           <LocalShippingIcon sx={{ color: "purple" }} fontSize="large" />
-          <Typography variant="h5">89</Typography>
+          <Typography variant="h5">{shipVisits.length}</Typography>
           <Typography variant="subtitle2">Ship Visits</Typography>
         </Paper>
       </Box>

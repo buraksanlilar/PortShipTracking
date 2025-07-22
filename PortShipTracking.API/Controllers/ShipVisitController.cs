@@ -81,4 +81,19 @@ public class ShipVisitsController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("searchPaged")]
+    public async Task<ActionResult<object>> SearchPaged(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] int? shipId = null,
+    [FromQuery] int? portId = null,
+    [FromQuery] string? purpose = null,
+    [FromQuery] DateTime? arrivalDate = null,
+    [FromQuery] DateTime? departureDate = null)
+    {
+        var result = await _visitService.SearchPagedAsync(page, pageSize, shipId, portId, purpose, arrivalDate, departureDate);
+        return Ok(result);
+    }
+
+
 }

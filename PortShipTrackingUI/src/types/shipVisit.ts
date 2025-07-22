@@ -1,5 +1,5 @@
 export interface ShipVisit {
-    shipVisitId: number;
+    visitId: number;
     shipId: number;
     portId: number;
     arrivalDate: string;
