@@ -43,9 +43,22 @@ namespace PortShipTracking.API.Repositories.ShipVisitRepository
         {
             _context.ShipVisits.Remove(visit);
         }
-        public async Task<object> SearchPagedAsync(int page, int pageSize, int? shipId, int? portId, string? purpose, DateTime? arrivalDate, DateTime? departureDate)
+        public async Task<object> SearchPagedAsync(
+    int page,
+    int pageSize,
+    int? visitId,
+    int? shipId,
+    int? portId,
+    string? purpose,
+    DateTime? arrivalDateStart,
+    DateTime? arrivalDateEnd,
+    DateTime? departureDateStart,
+    DateTime? departureDateEnd)
         {
             var query = _context.ShipVisits.AsQueryable();
+
+            if (visitId.HasValue)
+                query = query.Where(v => v.VisitId == visitId.Value);
 
             if (shipId.HasValue)
                 query = query.Where(v => v.ShipId == shipId.Value);
@@ -56,14 +69,22 @@ namespace PortShipTracking.API.Repositories.ShipVisitRepository
             if (!string.IsNullOrWhiteSpace(purpose))
                 query = query.Where(v => v.Purpose.Contains(purpose));
 
-            if (arrivalDate.HasValue)
-                query = query.Where(v => v.ArrivalDate.Date == arrivalDate.Value.Date);
+            if (arrivalDateStart.HasValue && arrivalDateEnd.HasValue)
+                query = query.Where(v =>
+                    v.ArrivalDate >= arrivalDateStart &&
+                    v.ArrivalDate <= arrivalDateEnd);
 
-            if (departureDate.HasValue)
-                query = query.Where(v => v.DepartureDate.HasValue && v.DepartureDate.Value.Date == departureDate.Value.Date);
+            if (departureDateStart.HasValue && departureDateEnd.HasValue)
+                query = query.Where(v =>
+                    v.DepartureDate.HasValue &&
+                    v.DepartureDate.Value >= departureDateStart &&
+                    v.DepartureDate.Value <= departureDateEnd);
 
             var totalCount = await query.CountAsync();
+
             var items = await query
+                .Include(v => v.Ship)
+                .Include(v => v.Port)
                 .OrderBy(v => v.VisitId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -75,6 +96,7 @@ namespace PortShipTracking.API.Repositories.ShipVisitRepository
                 Items = items
             };
         }
+
 
 
 

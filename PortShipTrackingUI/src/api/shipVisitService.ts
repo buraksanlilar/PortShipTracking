@@ -8,20 +8,28 @@ const shipVisitService = {
     return response.data;
   },
 
-  searchPaged: async (page: number, pageSize: number, filters: Record<string, string | number | undefined>) => {
-    const params: { page: number; pageSize: number; arrivalDate?: string; departureDate?: string } = {
+  searchPaged: async (
+    page: number,
+    pageSize: number,
+    filters: Record<string, string | number | undefined>
+  ) => {
+    const params: Record<string, string | number> = {
       page,
       pageSize,
-      ...filters,
     };
   
-    // Eğer tarih boşsa API'ye gönderme (nullable field uyumu için)
-    if (!params.arrivalDate) delete params.arrivalDate;
-    if (!params.departureDate) delete params.departureDate;
+    // Filtreleri sadece dolu olanları ekle
+    for (const key in filters) {
+      const value = filters[key];
+      if (value !== undefined && value !== "") {
+        params[key] = value;
+      }
+    }
   
     const response = await api.get("/ShipVisits/searchPaged", { params });
     return response.data;
   },
+  
   
 
   // Tek ziyaret getir

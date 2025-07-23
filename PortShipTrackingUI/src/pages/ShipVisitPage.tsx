@@ -22,7 +22,6 @@ import {
   Checkbox,
   TablePagination,
 } from "@mui/material";
-import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -32,6 +31,16 @@ import portService from "../api/portService";
 import type { ShipVisit } from "../types/shipVisit";
 import type { Ship } from "../types/ship";
 import type { Port } from "../types/port";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import Autocomplete from "@mui/material/Autocomplete";
+import "dayjs/locale/tr";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale("tr");
+dayjs.tz.setDefault("Europe/Istanbul");
 
 const defaultForm: ShipVisit = {
   visitId: 0,
@@ -49,12 +58,15 @@ export default function ShipVisitPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [form, setForm] = useState<ShipVisit>(defaultForm);
   const [filters, setFilters] = useState<{
+    visitId: number;
     purpose?: string;
-    arrivalDate?: Date | null;
-    departureDate?: Date | null;
+    arrivalDate?: dayjs.Dayjs | null;
+    departureDate?: dayjs.Dayjs | null;
     shipId?: number;
     portId?: number;
-  }>({});
+    shipName?: string;
+    portName?: string;
+  }>({ visitId: 0 });
   const [open, setOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -89,21 +101,54 @@ export default function ShipVisitPage() {
   }, [arrivalDateClear, departureDateClear]);
 
   const loadVisits = useCallback(async () => {
+    const queryFilters: Record<string, string | number | undefined> = {};
+
+    if (filters.purpose) queryFilters.purpose = filters.purpose;
+    if (filters.shipId) queryFilters.shipId = filters.shipId;
+    if (filters.portId) queryFilters.portId = filters.portId;
+    if (filters.visitId) queryFilters.visitId = filters.visitId;
+
+    if (filters.arrivalDate) {
+      const selected = filters.arrivalDate;
+      let granularity: "year" | "month" | "day" | "minute" = "minute";
+      if (
+        selected.date() === 1 &&
+        selected.hour() === 0 &&
+        selected.minute() === 0
+      ) {
+        if (selected.month() === 0) {
+          granularity = "year";
+        } else {
+          granularity = "month";
+        }
+      } else if (selected.hour() === 0 && selected.minute() === 0) {
+        granularity = "day";
+      }
+      queryFilters.arrivalDateStart = selected
+        .startOf(granularity)
+        .toISOString();
+      queryFilters.arrivalDateEnd = selected.endOf(granularity).toISOString();
+    }
+
+    if (filters.departureDate) {
+      const selected = filters.departureDate;
+      queryFilters.departureDateStart = selected
+        .startOf("minute")
+        .toISOString();
+      queryFilters.departureDateEnd = selected.endOf("minute").toISOString();
+    }
+    if (filters.departureDate) {
+      const selected = dayjs(filters.departureDate);
+      queryFilters.departureDateStart = selected
+        .startOf("minute")
+        .toISOString();
+      queryFilters.departureDateEnd = selected.endOf("minute").toISOString();
+    }
+
     const res = await shipVisitService.searchPaged(
       page + 1,
       rowsPerPage,
-      Object.fromEntries(
-        Object.entries(filters)
-          .filter(([, v]) => v !== undefined && v !== "")
-          .map(([key, value]) => [
-            key,
-            value instanceof Date
-              ? value.toISOString()
-              : value === null
-              ? undefined
-              : value,
-          ])
-      )
+      queryFilters
     );
     setVisits(res.items);
     setTotalCount(res.totalCount);
@@ -130,7 +175,7 @@ export default function ShipVisitPage() {
     setForm((prev) => ({ ...prev, [name!]: value }));
   };
 
-  const handleFilterDateChange = (name: string, value: Date | null) => {
+  const handleFilterDateChange = (name: string, value: dayjs.Dayjs | null) => {
     setFilters((prev) => ({
       ...prev,
       [name]: value,
@@ -215,62 +260,146 @@ export default function ShipVisitPage() {
 
   return (
     <Box p={3}>
-      <h1>Ship Visit Management</h1>
+      <h1 style={{ marginBottom: 16 }}>Ship Visit Management</h1>
 
       {/* Filters */}
-      <Box mb={2} display="flex" gap={2} flexWrap="wrap">
-        <TextField
-          label="Purpose"
-          name="purpose"
-          value={filters.purpose || ""}
-          onChange={handleFilterChange}
-        />
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DesktopDatePicker
-            label="Arrival Date"
-            value={filters.arrivalDate ? dayjs(filters.arrivalDate) : null}
-            onChange={(value) =>
-              handleFilterDateChange(
-                "arrivalDate",
-                value ? value.toDate() : null
-              )
-            }
-            slotProps={{ textField: { label: "Arrival Date" } }}
-          />
-          <DesktopDatePicker
-            label="Departure Date"
-            value={filters.departureDate ? dayjs(filters.departureDate) : null}
-            onChange={(value) =>
-              handleFilterDateChange(
-                "departureDate",
-                value ? value.toDate() : null
-              )
-            }
-            slotProps={{ textField: { label: "Departure Date" } }}
-          />
-        </LocalizationProvider>
-        <TextField
-          label="Ship ID"
-          name="shipId"
-          value={filters.shipId || ""}
-          onChange={handleFilterChange}
-        />
-        <TextField
-          label="Port ID"
-          name="portId"
-          value={filters.portId || ""}
-          onChange={handleFilterChange}
-        />
-      </Box>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
+          {[
+            { label: "Visit ID", name: "visitId", type: "number" },
+            { label: "Ship ID", name: "shipId", type: "number" },
+            {
+              label: "Ship Name",
+              name: "shipName",
+              type: "autocomplete",
+              options: ships.map((s) => s.name),
+            },
+            { label: "Port ID", name: "portId", type: "number" },
+            {
+              label: "Port Name",
+              name: "portName",
+              type: "autocomplete",
+              options: ports.map((p) => p.name),
+            },
+            { label: "Purpose", name: "purpose", type: "text" },
+          ].map((field) =>
+            field.type === "autocomplete" ? (
+              <Autocomplete
+                key={field.name}
+                options={field.options || []}
+                value={(filters as Record<string, unknown>)[field.name] || ""}
+                onChange={(_, newValue) => {
+                  if (field.name === "shipName") {
+                    const selected = ships.find((s) => s.name === newValue);
+                    setFilters((prev) => ({
+                      ...prev,
+                      shipName: typeof newValue === "string" ? newValue : "",
+                      shipId: selected?.shipId || undefined,
+                    }));
+                  } else if (field.name === "portName") {
+                    const selected = ports.find((p) => p.name === newValue);
+                    setFilters((prev) => ({
+                      ...prev,
+                      portName: typeof newValue === "string" ? newValue : "",
+                      portId: selected?.portId || undefined,
+                    }));
+                  }
+                  setPage(0);
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label={field.label} size="small" />
+                )}
+                sx={{ minWidth: 200 }}
+              />
+            ) : (
+              <TextField
+                key={field.name}
+                label={field.label}
+                name={field.name}
+                type={field.type}
+                size="small"
+                value={(filters as Record<string, unknown>)[field.name] ?? ""}
+                onChange={handleFilterChange}
+                sx={{ minWidth: 200 }}
+              />
+            )
+          )}
+
+          {[
+            {
+              label: "Arrival Date & Time",
+              name: "arrivalDate",
+              pickerType: "datetime",
+              otherProps: {
+                maxDateTime: filters.departureDate
+                  ? dayjs(filters.departureDate)
+                  : undefined,
+              },
+            },
+            {
+              label: "Departure Date & Time",
+              name: "departureDate",
+              pickerType: "datetime",
+              otherProps: {
+                minDateTime: filters.arrivalDate
+                  ? dayjs(filters.arrivalDate)
+                  : undefined,
+              },
+            },
+          ].map(({ label, name, otherProps }) => (
+            <DateTimePicker
+              key={name}
+              label={label}
+              format="DD.MM.YYYY HH:mm"
+              value={
+                dayjs.isDayjs(filters[name as keyof typeof filters])
+                  ? (filters[name as keyof typeof filters] as dayjs.Dayjs)
+                  : null
+              }
+              onChange={(value) => {
+                const otherDate =
+                  name === "arrivalDate"
+                    ? filters.departureDate
+                    : filters.arrivalDate;
+                const isSameDay =
+                  value && otherDate && value.isSame(otherDate, "day");
+                const isInvalid =
+                  value &&
+                  otherDate &&
+                  ((name === "arrivalDate" &&
+                    value.isAfter(otherDate) &&
+                    isSameDay) ||
+                    (name === "departureDate" &&
+                      value.isBefore(otherDate) &&
+                      isSameDay));
+                if (isInvalid) {
+                  alert(
+                    name === "arrivalDate"
+                      ? "Arrival time must be before departure time."
+                      : "Departure time must be after arrival time."
+                  );
+                  return;
+                }
+                handleFilterDateChange(name, value);
+              }}
+              slotProps={{
+                textField: { size: "small" },
+                actionBar: { actions: ["clear"] },
+              }}
+              sx={{ minWidth: 250 }}
+              {...otherProps}
+            />
+          ))}
+        </Box>
+      </LocalizationProvider>
 
       {/* Actions */}
-      <Box mb={2}>
+      <Box display="flex" gap={2} mb={2}>
         <Button variant="contained" onClick={handleNew}>
           New
         </Button>
         <Button
           variant="contained"
-          sx={{ ml: 1 }}
           onClick={handleEdit}
           disabled={selectedIds.length !== 1}
         >
@@ -279,20 +408,19 @@ export default function ShipVisitPage() {
         <Button
           variant="contained"
           color="error"
-          sx={{ ml: 1 }}
           onClick={() => setOpenDelete(true)}
           disabled={selectedIds.length === 0}
         >
           Delete
         </Button>
       </Box>
-
       {/* Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell />
+              <TableCell>Visit ID</TableCell>
               <TableCell>Ship</TableCell>
               <TableCell>Port</TableCell>
               <TableCell>Arrival</TableCell>
@@ -309,22 +437,39 @@ export default function ShipVisitPage() {
                     onChange={() => handleCheckbox(v.visitId)}
                   />
                 </TableCell>
+                <TableCell>{v.visitId}</TableCell>
                 <TableCell>
-                  {ships.find((s) => s.shipId === v.shipId)?.name || v.shipId}
+                  {(ships.find((s) => s.shipId === v.shipId)?.name || "") +
+                    (" " + v.shipId) || v.shipId}
                 </TableCell>
                 <TableCell>
-                  {ports.find((p) => p.portId === v.portId)?.name || v.portId}
+                  {(ports.find((p) => p.portId === v.portId)?.name || "") +
+                    (" " + v.portId) || v.portId}
                 </TableCell>
                 <TableCell>
                   {v.arrivalDate
-                    ? new Date(v.arrivalDate).toLocaleDateString()
+                    ? new Date(v.arrivalDate).toLocaleString("tr-TR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                     : "-"}
                 </TableCell>
+
                 <TableCell>
                   {v.departureDate
-                    ? new Date(v.departureDate).toLocaleDateString()
+                    ? new Date(v.departureDate).toLocaleString("tr-TR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                     : "-"}
                 </TableCell>
+
                 <TableCell>{v.purpose}</TableCell>
               </TableRow>
             ))}
@@ -382,8 +527,9 @@ export default function ShipVisitPage() {
           </FormControl>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DesktopDatePicker
-              label="Arrival Date"
+            <DateTimePicker
+              label="Arrival Date & Time"
+              format="DD.MM.YYYY HH:mm"
               value={form.arrivalDate ? dayjs(form.arrivalDate) : null}
               onChange={(value) =>
                 setForm((prev) => ({
@@ -400,8 +546,9 @@ export default function ShipVisitPage() {
               }}
             />
 
-            <DesktopDatePicker
-              label="Departure Date"
+            <DateTimePicker
+              label="Departure Date & Time"
+              format="DD.MM.YYYY HH:mm"
               value={form.departureDate ? dayjs(form.departureDate) : null}
               onChange={(value) =>
                 setForm((prev) => ({
