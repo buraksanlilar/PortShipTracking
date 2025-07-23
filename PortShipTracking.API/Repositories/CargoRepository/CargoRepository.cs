@@ -46,5 +46,11 @@ namespace PortShipTracking.API.Repositories.CargoRepository
         {
             await _context.SaveChangesAsync();
         }
+
+        // ✅ NEW
+        public Task<IQueryable<Cargo>> GetAllQueryableAsync()
+        {
+            return Task.FromResult(_context.Cargos.Include(c => c.Ship).AsQueryable());
+        }
     }
 }

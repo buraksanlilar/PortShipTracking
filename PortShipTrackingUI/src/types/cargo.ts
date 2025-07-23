@@ -5,4 +5,6 @@ export interface Cargo {
     weightTon: number;
     cargoType: string; // Type of cargo (e.g., container, bulk, liquid)
 
+    shipName?: string;
+
 }

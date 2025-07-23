@@ -1,14 +1,18 @@
 using PortShipTracking.API.Models;
+using System.Linq;
 
 namespace PortShipTracking.API.Repositories.CargoRepository
 {
     public interface ICargoRepository
     {
-        Task<List<Models.Cargo>> GetAllAsync();
-        Task<Models.Cargo?> GetByIdAsync(int id);
-        Task AddAsync(Models.Cargo cargo);
-        void Update(Models.Cargo cargo);
-        void Delete(Models.Cargo cargo);
+        Task<List<Cargo>> GetAllAsync();
+        Task<Cargo?> GetByIdAsync(int id);
+        Task AddAsync(Cargo cargo);
+        void Update(Cargo cargo);
+        void Delete(Cargo cargo);
         Task SaveAsync();
+
+        // ✅ NEW
+        Task<IQueryable<Cargo>> GetAllQueryableAsync();
     }
 }

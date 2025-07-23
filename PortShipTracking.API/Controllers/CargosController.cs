@@ -73,4 +73,11 @@ public class CargosController : ControllerBase
 
         return NoContent();
     }
+    [HttpPost("searchPaged")]
+    public async Task<IActionResult> SearchPaged([FromBody] SearchCargoDto dto)
+    {
+        var result = await _cargoService.SearchPagedAsync(dto);
+        return Ok(result);
+    }
+
 }
