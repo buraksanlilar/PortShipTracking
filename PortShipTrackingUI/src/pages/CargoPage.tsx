@@ -204,14 +204,6 @@ export default function CargoPage() {
           sx={{ minWidth: 250 }}
         />
 
-        <TextField
-          label="Ship Name"
-          name="shipName"
-          value={filters.shipName ?? ""}
-          onChange={handleFilterChange}
-          size="small"
-        />
-
         {[
           { label: "Cargo ID", name: "cargoId", type: "number" },
           { label: "Description", name: "description" },
@@ -292,7 +284,7 @@ export default function CargoPage() {
             <TableRow>
               <TableCell />
               <TableCell>Cargo ID</TableCell>
-              <TableCell>Ship ID</TableCell>
+              <TableCell>Ship</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Weight (Ton)</TableCell>
               <TableCell>Type</TableCell>
@@ -308,7 +300,10 @@ export default function CargoPage() {
                   />
                 </TableCell>
                 <TableCell>{cargo.cargoId}</TableCell>
-                <TableCell>{cargo.shipId}</TableCell>
+                <TableCell>
+                  {(ships.find((s) => s.shipId === cargo.shipId)?.name || "") +
+                    (" " + cargo.shipId) || cargo.shipId}
+                </TableCell>
                 <TableCell>{cargo.description}</TableCell>
                 <TableCell>{cargo.weightTon}</TableCell>
                 <TableCell>{cargo.cargoType}</TableCell>
