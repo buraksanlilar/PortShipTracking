@@ -13,24 +13,24 @@ public class CrewMemberService : ICrewMemberService
         _repository = repository;
     }
 
-    public async Task<List<Models.CrewMember>> GetAllAsync()
+    public async Task<List<CrewMember>> GetAllAsync()
     {
         return await _repository.GetAllAsync();
     }
 
-    public async Task<Models.CrewMember?> GetByIdAsync(int id)
+    public async Task<CrewMember?> GetByIdAsync(int id)
     {
         return await _repository.GetByIdAsync(id);
     }
 
-    public async Task<Models.CrewMember> CreateAsync(Models.CrewMember member)
+    public async Task<CrewMember> CreateAsync(CrewMember member)
     {
         await _repository.AddAsync(member);
         await _repository.SaveAsync();
         return member;
     }
 
-    public async Task<bool> UpdateAsync(int id, Models.CrewMember member)
+    public async Task<bool> UpdateAsync(int id, CrewMember member)
     {
         var existing = await _repository.GetByIdAsync(id);
         if (existing == null)
@@ -55,6 +55,10 @@ public class CrewMemberService : ICrewMemberService
         _repository.Delete(existing);
         await _repository.SaveAsync();
         return true;
+    }
+    public async Task<object> SearchPagedAsync(int page, int pageSize, int? crewId, string? firstName, string? lastName, string? email, string? phoneNumber, string? role)
+    {
+        return await _repository.SearchPagedAsync(page, pageSize, crewId, firstName, lastName, email, phoneNumber, role);
     }
 }
 

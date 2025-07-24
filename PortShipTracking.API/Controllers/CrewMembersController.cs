@@ -66,4 +66,18 @@ public class CrewMembersController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("searchPaged")]
+    public async Task<ActionResult<object>> SearchPaged(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] int? crewId = null,
+    [FromQuery] string? firstName = null,
+    [FromQuery] string? lastName = null,
+    [FromQuery] string? email = null,
+    [FromQuery] string? phoneNumber = null,
+    [FromQuery] string? role = null)
+    {
+        var result = await _crewService.SearchPagedAsync(page, pageSize, crewId, firstName, lastName, email, phoneNumber, role);
+        return Ok(result);
+    }
 }
