@@ -53,5 +53,10 @@ namespace PortShipTracking.API.Services.ShipCrewAssignmentService
             await _repository.SaveAsync();
             return true;
         }
+        public async Task<object> SearchPagedAsync(int page, int pageSize, int? assignmentId, int? shipId, int? crewId, DateTime? assignmentDate)
+        {
+            return await _repository.SearchPagedAsync(page, pageSize, assignmentId, shipId, crewId, assignmentDate);
+        }
+
     }
 }

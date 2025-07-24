@@ -43,6 +43,33 @@ namespace PortShipTracking.API.Repositories.ShipCrewAssignmentRepository
         {
             _context.ShipCrewAssignments.Remove(assignment);
         }
+        public async Task<object> SearchPagedAsync(int page, int pageSize, int? assignmentId, int? shipId, int? crewId, DateTime? assignmentDate)
+        {
+            var query = _context.ShipCrewAssignments.AsQueryable();
+
+            if (assignmentId.HasValue)
+                query = query.Where(a => a.AssignmentId == assignmentId.Value);
+            if (shipId.HasValue)
+                query = query.Where(a => a.ShipId == shipId.Value);
+            if (crewId.HasValue)
+                query = query.Where(a => a.CrewId == crewId.Value);
+            if (assignmentDate.HasValue)
+                query = query.Where(a => a.AssignmentDate.Date == assignmentDate.Value.Date);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Include(a => a.Ship)
+                .Include(a => a.CrewMember)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new
+            {
+                TotalCount = totalCount,
+                Items = items
+            };
+        }
 
         public async Task SaveAsync()
         {

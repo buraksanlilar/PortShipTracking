@@ -82,4 +82,25 @@ public class ShipCrewAssignmentsController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("searchPaged")]
+    public async Task<IActionResult> SearchPaged(
+     [FromQuery] int page,
+     [FromQuery] int pageSize,
+     [FromQuery] int? assignmentId,
+     [FromQuery] int? shipId,
+     [FromQuery] int? crewId,
+     [FromQuery] DateTime? assignmentDate
+     )
+    {
+        var result = await _service.SearchPagedAsync(
+            page,
+            pageSize,
+            assignmentId,
+            shipId,
+            crewId,
+            assignmentDate
+            );
+
+        return Ok(result);
+    }
 }

@@ -8,6 +8,7 @@ namespace PortShipTracking.API.Services.ShipCrewAssignmentService
         Task<ShipCrewAssignment?> GetByIdAsync(int id);
         Task<ShipCrewAssignment> CreateAsync(ShipCrewAssignment assignment);
         Task<bool> UpdateAsync(int id, ShipCrewAssignment assignment);
+        Task<object> SearchPagedAsync(int page, int pageSize, int? assignmentId, int? shipId, int? crewId, DateTime? assignmentDate);
         Task<bool> DeleteAsync(int id);
     }
 }
