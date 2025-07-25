@@ -65,6 +65,7 @@ namespace PortShipTracking.API.Repositories.CrewMemberRepository
             var items = await query
                 .OrderBy(s => s.CrewId)
                 .Skip((page - 1) * pageSize)
+                .OrderByDescending(s => s.CrewId)
                 .Take(pageSize)
                 .ToListAsync();
 

@@ -51,7 +51,7 @@ namespace PortShipTracking.API.Repositories.PortRepository
                 query = query.Where(p => p.City.Contains(city));
 
             var totalCount = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await query.Skip((page - 1) * pageSize).OrderByDescending(p => p.PortId).Take(pageSize).ToListAsync();
 
             return new
             {

@@ -60,6 +60,7 @@ namespace PortShipTracking.API.Repositories.ShipCrewAssignmentRepository
             var items = await query
                 .Include(a => a.Ship)
                 .Include(a => a.CrewMember)
+                .OrderByDescending(a => a.AssignmentId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

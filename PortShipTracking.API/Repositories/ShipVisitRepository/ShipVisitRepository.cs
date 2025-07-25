@@ -85,7 +85,7 @@ namespace PortShipTracking.API.Repositories.ShipVisitRepository
             var items = await query
                 .Include(v => v.Ship)
                 .Include(v => v.Port)
-                .OrderBy(v => v.VisitId)
+                .OrderByDescending(v => v.VisitId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

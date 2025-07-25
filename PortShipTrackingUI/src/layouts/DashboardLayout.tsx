@@ -57,6 +57,7 @@ const DashboardLayout: React.FC = () => {
         position="fixed"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
+          bgcolor: "#456882",
         }}
       >
         <Toolbar>

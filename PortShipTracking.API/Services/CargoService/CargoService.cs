@@ -78,6 +78,7 @@ namespace PortShipTracking.API.Services.CargoService
             var totalCount = await query.CountAsync();
             var items = await query
                 .Skip((dto.Page - 1) * dto.PageSize)
+                .OrderByDescending(c => c.CargoId)
                 .Take(dto.PageSize)
                 .ToListAsync();
 

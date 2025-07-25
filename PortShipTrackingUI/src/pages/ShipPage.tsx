@@ -21,7 +21,8 @@ import {
   DialogContentText,
 } from "@mui/material";
 import type { Ship } from "../types/ship";
-import ReactFlagsSelect from "react-flags-select";
+import Select from "react-select";
+import countryList from "react-select-country-list";
 import shipService from "../api/shipService";
 
 const { searchPagedShips, addShip, updateShip, deleteShip } = shipService;
@@ -49,6 +50,21 @@ export default function ShipPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+
+  const countryOptions = countryList()
+    .getData()
+    .map((country) => ({
+      label: `${getFlagEmoji(country.value)} ${country.label}`,
+      value: country.label,
+    }));
+
+  function getFlagEmoji(countryCode: string): string {
+    const codePoints = countryCode
+      .toUpperCase()
+      .split("")
+      .map((char) => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
+  }
 
   const loadPagedShips = React.useCallback(async () => {
     const res = await searchPagedShips(page + 1, rowsPerPage, filters);
@@ -107,17 +123,6 @@ export default function ShipPage() {
     loadPagedShips();
     setSnackbarMessage("✅ Ship(s) deleted successfully.");
     setSnackbarOpen(true);
-  };
-
-  const handleEdit = () => {
-    if (selectedIds.length === 1) {
-      const ship = ships.find((s) => s.shipId === selectedIds[0]);
-      if (ship) {
-        setForm(ship);
-        setIsEdit(true);
-        setOpen(true);
-      }
-    }
   };
 
   const handleNew = () => {
@@ -212,13 +217,11 @@ export default function ShipPage() {
       <h1>Ship Management</h1>
 
       {/* Filters */}
-      <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
+      <Box mb={2} display="flex" flexWrap="wrap" gap={3}>
         {[
-          { label: "Ship ID", name: "shipId", type: "number" },
           { label: "IMO", name: "imo" },
           { label: "Name", name: "name" },
           { label: "Type", name: "type" },
-          { label: "Flag", name: "flag" },
           { label: "Year Built", name: "yearBuilt", type: "number" },
         ].map((field) => (
           <TextField
@@ -231,6 +234,58 @@ export default function ShipPage() {
             onChange={handleFilterChange}
           />
         ))}
+        <Select
+          options={countryOptions}
+          value={countryOptions.find((c) => c.value === filters.flag)}
+          onChange={(value) =>
+            handleFilterChange({
+              target: {
+                name: "flag",
+                value: value?.value || "",
+              },
+            } as React.ChangeEvent<HTMLInputElement>)
+          }
+          placeholder="Select Flag"
+          menuPortalTarget={document.body}
+          isClearable
+          styles={{
+            menuPortal: (base) => ({ ...base, zIndex: 1500 }),
+            control: (base) => ({
+              ...base,
+              border: "1px solid rgba(0, 0, 0, 0.23)",
+              borderRadius: 4,
+              minHeight: 40,
+              minWidth: 200,
+              display: "flex",
+              alignItems: "center", // dikey ortalama (varsayılan zaten)
+            }),
+            placeholder: (base) => ({
+              ...base,
+              color: "#9e9e9e",
+              textAlign: "left", // 👈 Buraya yazılmalı
+              marginLeft: 2,
+              width: "100%",
+            }),
+          }}
+        />
+        <Box mb={2} display="flex" justifyContent="flex-end">
+          <Button
+            variant="contained"
+            onClick={handleNew}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            New
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleOpenDeleteConfirmation}
+            disabled={selectedIds.length === 0}
+            sx={{ ml: 1 }}
+          >
+            Delete
+          </Button>
+        </Box>
       </Box>
       <Dialog
         open={openDelete}
@@ -278,40 +333,29 @@ export default function ShipPage() {
         </DialogActions>
       </Dialog>
 
-      <Box mb={2}>
-        <Button variant="contained" onClick={handleNew}>
-          New
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleEdit}
-          disabled={selectedIds.length !== 1}
-          sx={{ ml: 1 }}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={handleOpenDeleteConfirmation}
-          disabled={selectedIds.length === 0}
-          sx={{ ml: 1 }}
-        >
-          Delete
-        </Button>
-      </Box>
-
       <TableContainer component={Paper}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: "#456882" }}>
             <TableRow>
               <TableCell />
-              <TableCell>Ship ID</TableCell>
-              <TableCell>IMO</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Flag</TableCell>
-              <TableCell>Year Built</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                IMO
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Name
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Type
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Flag
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Year Built
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -323,12 +367,24 @@ export default function ShipPage() {
                     onChange={() => handleCheckbox(ship.shipId)}
                   />
                 </TableCell>
-                <TableCell>{ship.shipId}</TableCell>
                 <TableCell>{ship.imo}</TableCell>
                 <TableCell>{ship.name}</TableCell>
                 <TableCell>{ship.type}</TableCell>
                 <TableCell>{ship.flag}</TableCell>
                 <TableCell>{ship.yearBuilt}</TableCell>
+                <TableCell padding="normal">
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setForm(ship);
+                      setIsEdit(true);
+                      setOpen(true);
+                    }}
+                    sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -376,33 +432,33 @@ export default function ShipPage() {
             margin="dense"
           />
           <FormControl fullWidth margin="dense">
-            <Box
-              sx={{
-                mt: 0.5,
-                ".ReactFlagsSelect-module_selectBtn__": {
-                  border: "1px solid rgba(0, 0, 0, 0.23)",
-                  borderRadius: "4px",
-                  padding: "8.5px 14px",
-                  fontSize: "16px",
-                  width: "100%",
-                },
-              }}
-            >
-              <ReactFlagsSelect
-                selected={form.flag}
-                onSelect={(code) =>
+            <Box sx={{ zIndex: 1301, position: "relative" }}>
+              <Select
+                options={countryOptions}
+                value={countryOptions.find((c) => c.value === form.flag)}
+                onChange={(value) =>
                   handleFormChange({
                     target: {
                       name: "flag",
-                      value: code,
+                      value: value?.value || "",
                     },
                   } as React.ChangeEvent<HTMLInputElement>)
                 }
-                searchable
                 placeholder="Select Flag"
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: (base) => ({ ...base, zIndex: 1500 }),
+                  control: (base) => ({
+                    ...base,
+                    border: "1px solid rgba(0, 0, 0, 0.23)",
+                    borderRadius: 4,
+                    minHeight: 40,
+                  }),
+                }}
               />
             </Box>
           </FormControl>
+
           <TextField
             label="Year Built"
             name="yearBuilt"

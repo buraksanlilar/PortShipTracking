@@ -98,7 +98,7 @@ namespace PortShipTracking.API.Repositories.ShipRepository
             var totalCount = await query.CountAsync();
 
             var items = await query
-                .OrderBy(s => s.ShipId)
+                .OrderByDescending(s => s.ShipId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

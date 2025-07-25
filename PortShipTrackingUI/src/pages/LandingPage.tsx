@@ -8,23 +8,34 @@ import { useEffect, useState } from "react";
 import type { Ship } from "../types/ship";
 import type { Port } from "../types/port";
 import type { ShipVisit } from "../types/shipVisit";
+import type { CrewMember } from "../types/crewMember";
+import type { Cargo } from "../types/cargo";
 import { useNavigate } from "react-router-dom";
 import portService from "../api/portService";
 import shipVisitService from "../api/shipVisitService";
+import cargoService from "../api/cargoService";
+import crewMemberService from "../api/crewMemberService";
+import { CalendarMonth } from "@mui/icons-material";
 
 const { getShips } = shipService;
 const { getPorts } = portService;
 const { getShipVisits } = shipVisitService;
+const { getCrewMembers } = crewMemberService;
+const { getCargoList } = cargoService;
 
 function LandingPage() {
   const [ships, setShips] = useState<Ship[]>([]);
   const [ports, setPorts] = useState<Port[]>([]);
   const [shipVisits, setShipVisits] = useState<ShipVisit[]>([]);
+  const [crewMembers, setCrewMembers] = useState<CrewMember[]>([]);
+  const [cargos, setCargos] = useState<Cargo[]>([]);
 
   useEffect(() => {
     loadShips(); // bu fonksiyon içinde getShips çağrılıyor
     loadPorts(); // bu fonksiyon içinde getPorts çağrılıyor
     loadShipVisits();
+    loadCrewMembers();
+    loadCargos();
   }, []);
 
   const loadShips = async () => {
@@ -39,9 +50,20 @@ function LandingPage() {
     const res = await getShipVisits();
     setShipVisits(res);
   };
+  const loadCrewMembers = async () => {
+    const res = await getCrewMembers();
+    setCrewMembers(res);
+  };
+  const loadCargos = async () => {
+    const res = await getCargoList();
+    setCargos(res);
+  };
   const navigate = useNavigate();
   const shipNumber = ships.length; // Toplam gemi sayısını al
   const portNumber = ports.length; // Toplam liman sayısını al
+  const crewMemberNumber = crewMembers.length; // Toplam mürettebat sayısını al
+  const cargoNumber = cargos.length; // Toplam kargo sayısını al
+
   return (
     <Box>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -90,6 +112,21 @@ function LandingPage() {
           <Typography variant="subtitle2">Active Ports</Typography>
         </Paper>
 
+        <Paper
+          onClick={() => navigate("/shipVisitPage")}
+          elevation={2}
+          sx={{
+            flex: "1 1 200px",
+            p: 3,
+            textAlign: "center",
+            "&:hover": { cursor: "pointer", backgroundColor: "#f0f0f0" },
+          }}
+        >
+          <CalendarMonth fontSize="large" />
+          <Typography variant="h5">{shipVisits.length}</Typography>
+          <Typography variant="subtitle2">Ship Visits</Typography>
+        </Paper>
+
         {/* Card 3 */}
         <Paper
           onClick={() => navigate("/crewMemberPage")}
@@ -102,13 +139,15 @@ function LandingPage() {
           }}
         >
           <PeopleIcon sx={{ color: "orange" }} fontSize="large" />
-          <Typography variant="h5">1,247</Typography>
+          <Typography variant="h5">{crewMemberNumber}</Typography>
           <Typography variant="subtitle2">Crew Members</Typography>
         </Paper>
 
         {/* Card 4 */}
+
+        {/* Card 5 */}
         <Paper
-          onClick={() => navigate("/shipVisitPage")}
+          onClick={() => navigate("/cargoPage")}
           elevation={2}
           sx={{
             flex: "1 1 200px",
@@ -118,8 +157,8 @@ function LandingPage() {
           }}
         >
           <LocalShippingIcon sx={{ color: "purple" }} fontSize="large" />
-          <Typography variant="h5">{shipVisits.length}</Typography>
-          <Typography variant="subtitle2">Ship Visits</Typography>
+          <Typography variant="h5">{cargoNumber}</Typography>
+          <Typography variant="subtitle2">Total Cargos</Typography>
         </Paper>
       </Box>
     </Box>
