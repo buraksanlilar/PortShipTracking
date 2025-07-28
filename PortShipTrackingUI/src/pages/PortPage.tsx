@@ -18,11 +18,16 @@ import {
   TextField,
   Checkbox,
   TablePagination,
+  Typography,
+  FormControl,
 } from "@mui/material";
 import type { Port } from "../types/port";
 import portService from "../api/portService";
+import { fetchCountryWithFlags } from "../utils/fetchCountryWithFlags";
+import Select from "react-select";
 
 const { searchPagedPorts, addPort, updatePort, deletePort } = portService;
+const countryOptions = fetchCountryWithFlags();
 
 const defaultForm: Port = {
   portId: 0,
@@ -118,17 +123,6 @@ export default function PortPage() {
     setSnackbarOpen(true);
   };
 
-  const handleEdit = () => {
-    if (selectedIds.length === 1) {
-      const port = ports.find((p) => p.portId === selectedIds[0]);
-      if (port) {
-        setForm(port);
-        setIsEdit(true);
-        setOpen(true);
-      }
-    }
-  };
-
   const handleNew = () => {
     setForm(defaultForm);
     setIsEdit(false);
@@ -160,40 +154,82 @@ export default function PortPage() {
   };
 
   return (
-    <Box p={3}>
-      <h1>Port Management</h1>
+    <Box>
+      <Typography variant="h4" fontWeight={"bold"} gutterBottom>
+        Port Management
+      </Typography>
 
       {/* Filters */}
-      <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
-        {[
-          { label: "Port ID", name: "portId" },
-          { label: "Name", name: "name" },
-          { label: "Country", name: "country" },
-          { label: "City", name: "city" },
-        ].map((field) => (
-          <TextField
-            key={field.name}
-            label={field.label}
-            name={field.name}
-            size="small"
-            value={(filters as Partial<Port>)[field.name as keyof Port] ?? ""}
-            onChange={handleFilterChange}
-          />
-        ))}
-      </Box>
+      <Box mb={2} display="flex" gap={2} alignItems="center">
+        {/* Name */}
+        <TextField
+          label="Name"
+          name="name"
+          size="small"
+          value={filters.name ?? ""}
+          onChange={handleFilterChange}
+        />
 
-      {/* Action Buttons */}
-      <Box mb={2}>
-        <Button variant="contained" onClick={handleNew}>
-          New
-        </Button>
+        {/* Country */}
+        <Box sx={{ minWidth: 200 }}>
+          <Select
+            options={countryOptions}
+            value={countryOptions.find((c) => c.value === filters.country)}
+            onChange={(value) =>
+              handleFilterChange({
+                target: {
+                  name: "country",
+                  value: value?.value || "",
+                },
+              } as React.ChangeEvent<HTMLInputElement>)
+            }
+            placeholder="Select Country"
+            isClearable
+            menuPortalTarget={document.body}
+            styles={{
+              menuPortal: (base) => ({ ...base, zIndex: 1500 }),
+              control: (base) => ({
+                ...base,
+                border: "1px solid rgba(0, 0, 0, 0.23)",
+                borderRadius: 4,
+                minHeight: 40,
+                height: 40,
+                fontSize: "0.875rem",
+                boxShadow: "none",
+              }),
+              valueContainer: (base) => ({
+                ...base,
+                padding: "2px 8px",
+              }),
+              placeholder: (base) => ({
+                ...base,
+                color: "#9e9e9e",
+                marginLeft: 2,
+              }),
+              input: (base) => ({
+                ...base,
+                margin: 0,
+                padding: 0,
+              }),
+            }}
+          />
+        </Box>
+
+        {/* City */}
+        <TextField
+          label="City"
+          name="city"
+          size="small"
+          value={filters.city ?? ""}
+          onChange={handleFilterChange}
+        />
+
         <Button
           variant="contained"
-          onClick={handleEdit}
-          disabled={selectedIds.length !== 1}
-          sx={{ ml: 1 }}
+          onClick={handleNew}
+          sx={{ bgcolor: "#456882", color: "white" }}
         >
-          Edit
+          New
         </Button>
         <Button
           variant="contained"
@@ -206,31 +242,50 @@ export default function PortPage() {
         </Button>
       </Box>
 
-      {/* Port Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ bgcolor: "#456882" }}>
               <TableCell />
-              <TableCell>Port ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Country</TableCell>
-              <TableCell>City</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Name
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Country
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                City
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {ports.map((port) => (
               <TableRow key={port.portId}>
-                <TableCell>
+                <TableCell padding="checkbox">
                   <Checkbox
                     checked={selectedIds.includes(port.portId)}
                     onChange={() => handleCheckbox(port.portId)}
                   />
                 </TableCell>
-                <TableCell>{port.portId}</TableCell>
                 <TableCell>{port.name}</TableCell>
                 <TableCell>{port.country}</TableCell>
                 <TableCell>{port.city}</TableCell>
+                <TableCell padding="normal">
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setForm(port);
+                      setIsEdit(true);
+                      setOpen(true);
+                    }}
+                    sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -255,34 +310,75 @@ export default function PortPage() {
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>{isEdit ? "Edit Port" : "Add New Port"}</DialogTitle>
         <DialogContent>
-          <TextField
-            label="Name"
-            name="name"
-            value={form.name}
-            onChange={handleFormChange}
-            fullWidth
-            margin="dense"
-          />
-          <TextField
-            label="Country"
-            name="country"
-            value={form.country}
-            onChange={handleFormChange}
-            fullWidth
-            margin="dense"
-          />
-          <TextField
-            label="City"
-            name="city"
-            value={form.city}
-            onChange={handleFormChange}
-            fullWidth
-            margin="dense"
-          />
+          <FormControl fullWidth margin="dense">
+            <TextField
+              label="Name"
+              name="name"
+              value={form.name}
+              onChange={handleFormChange}
+              fullWidth
+              margin="dense"
+            />
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <Select
+              options={countryOptions}
+              value={countryOptions.find((c) => c.value === form.country)}
+              onChange={(value) =>
+                handleFormChange({
+                  target: {
+                    name: "country",
+                    value: value?.value || "",
+                  },
+                } as React.ChangeEvent<HTMLInputElement>)
+              }
+              placeholder="Select Country"
+              isClearable
+              menuPortalTarget={document.body}
+              styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 1500 }),
+                control: (base) => ({
+                  ...base,
+                  border: "1px solid rgba(0, 0, 0, 0.23)",
+                  borderRadius: 4,
+                  minHeight: 40,
+                  minWidth: 200,
+                  display: "flex",
+                  alignItems: "center", // dikey ortalama (varsayılan zaten)
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: "#9e9e9e",
+                  textAlign: "left", // 👈 Buraya yazılmalı
+                  marginLeft: 2,
+                  width: "100%",
+                }),
+              }}
+            />
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <TextField
+              label="City"
+              name="city"
+              value={form.city}
+              onChange={handleFormChange}
+              fullWidth
+              margin="dense"
+            />
+          </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
+          <Button
+            onClick={() => setOpen(false)}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
             Save
           </Button>
         </DialogActions>

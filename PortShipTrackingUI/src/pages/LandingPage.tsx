@@ -59,10 +59,10 @@ function LandingPage() {
     setCargos(res);
   };
   const navigate = useNavigate();
-  const shipNumber = ships.length; // Toplam gemi sayısını al
-  const portNumber = ports.length; // Toplam liman sayısını al
-  const crewMemberNumber = crewMembers.length; // Toplam mürettebat sayısını al
-  const cargoNumber = cargos.length; // Toplam kargo sayısını al
+  const shipNumber = ships.length; // get the total number of ships
+  const portNumber = ports.length; // get the total number of ports
+  const crewMemberNumber = crewMembers.length; // get the total number of crew members
+  const cargoNumber = cargos.length; // get the total number of cargos
 
   return (
     <Box>

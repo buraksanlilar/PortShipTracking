@@ -18,6 +18,7 @@ import {
   Snackbar,
   TablePagination,
   DialogContentText,
+  Typography,
 } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
 import crewMemberService from "../api/crewMemberService";
@@ -64,6 +65,14 @@ export default function CrewMemberPage() {
     loadPagedCrewMembers();
   }, [loadPagedCrewMembers]);
 
+  const handlePhoneFilterChange = (value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      phoneNumber: value,
+    }));
+    setPage(0);
+  };
+
   const handleCheckbox = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -84,17 +93,6 @@ export default function CrewMemberPage() {
     setForm(defaultForm);
     setIsEdit(false);
     setOpen(true);
-  };
-
-  const handleEdit = () => {
-    if (selectedIds.length === 1) {
-      const crew = crewMembers.find((c) => c.crewId === selectedIds[0]);
-      if (crew) {
-        setForm(crew);
-        setIsEdit(true);
-        setOpen(true);
-      }
-    }
   };
 
   const handleOpenDeleteConfirmation = () => {
@@ -214,13 +212,13 @@ export default function CrewMemberPage() {
   };
 
   return (
-    <Box p={3}>
-      <h1>Crew Member Management</h1>
-
+    <Box>
+      <Typography variant="h4" gutterBottom fontWeight={"bold"}>
+        Crew Member Management
+      </Typography>
       {/* Filters */}
       <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
         {[
-          { label: "Crew Member ID", name: "crewId", type: "number" },
           { label: "First Name", name: "firstName" },
           { label: "Last Name", name: "lastName" },
           { label: "Email", name: "email" },
@@ -230,7 +228,6 @@ export default function CrewMemberPage() {
             key={field.name}
             label={field.label}
             name={field.name}
-            type={field.type || "text"}
             size="small"
             value={filters[field.name as keyof CrewMember] ?? ""}
             onChange={handleFilterChange}
@@ -238,48 +235,55 @@ export default function CrewMemberPage() {
         ))}
         <MuiTelInput
           label="Phone Number"
-          name="phoneNumber"
-          defaultCountry="TR"
           value={filters.phoneNumber || ""}
-          onChange={(value) => setFilters({ ...filters, phoneNumber: value })}
+          defaultCountry="TR"
+          onChange={handlePhoneFilterChange}
           size="small"
         />
-      </Box>
 
-      <Box mb={2}>
-        <Button variant="contained" onClick={handleNew}>
-          New
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleEdit}
-          disabled={selectedIds.length !== 1}
-          sx={{ ml: 1 }}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={handleOpenDeleteConfirmation}
-          disabled={selectedIds.length === 0}
-          sx={{ ml: 1 }}
-        >
-          Delete
-        </Button>
+        <Box mb={2}>
+          <Button
+            variant="contained"
+            onClick={handleNew}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            New
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleOpenDeleteConfirmation}
+            disabled={selectedIds.length === 0}
+            sx={{ ml: 1 }}
+          >
+            Delete
+          </Button>
+        </Box>
       </Box>
 
       <TableContainer component={Paper}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ bgcolor: "#456882" }}>
             <TableRow>
               <TableCell />
-              <TableCell>ID</TableCell>
-              <TableCell>First Name</TableCell>
-              <TableCell>Last Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone Number</TableCell>
-              <TableCell>Role</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                First Name
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Last Name
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Email
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Phone Number
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Role
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -291,12 +295,25 @@ export default function CrewMemberPage() {
                     onChange={() => handleCheckbox(c.crewId)}
                   />
                 </TableCell>
-                <TableCell>{c.crewId}</TableCell>
                 <TableCell>{c.firstName}</TableCell>
                 <TableCell>{c.lastName}</TableCell>
                 <TableCell>{c.email}</TableCell>
                 <TableCell>{c.phoneNumber}</TableCell>
                 <TableCell>{c.role}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setForm(c);
+                      setIsEdit(true);
+                      setOpen(true);
+                    }}
+                    sx={{ bgcolor: "#456882", color: "white" }}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -376,8 +393,17 @@ export default function CrewMemberPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
+          <Button
+            onClick={() => setOpen(false)}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
             Save
           </Button>
         </DialogActions>

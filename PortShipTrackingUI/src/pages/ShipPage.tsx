@@ -19,10 +19,11 @@ import {
   FormControl,
   TablePagination,
   DialogContentText,
+  Typography,
 } from "@mui/material";
 import type { Ship } from "../types/ship";
 import Select from "react-select";
-import countryList from "react-select-country-list";
+import { fetchCountryWithFlags } from "../utils/fetchCountryWithFlags";
 import shipService from "../api/shipService";
 
 const { searchPagedShips, addShip, updateShip, deleteShip } = shipService;
@@ -51,20 +52,7 @@ export default function ShipPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
-  const countryOptions = countryList()
-    .getData()
-    .map((country) => ({
-      label: `${getFlagEmoji(country.value)} ${country.label}`,
-      value: country.label,
-    }));
-
-  function getFlagEmoji(countryCode: string): string {
-    const codePoints = countryCode
-      .toUpperCase()
-      .split("")
-      .map((char) => 127397 + char.charCodeAt(0));
-    return String.fromCodePoint(...codePoints);
-  }
+  const countryOptions = fetchCountryWithFlags();
 
   const loadPagedShips = React.useCallback(async () => {
     const res = await searchPagedShips(page + 1, rowsPerPage, filters);
@@ -213,9 +201,10 @@ export default function ShipPage() {
   };
 
   return (
-    <Box p={3}>
-      <h1>Ship Management</h1>
-
+    <Box>
+      <Typography variant="h4" fontWeight={"bold"} gutterBottom>
+        Ship Management
+      </Typography>
       {/* Filters */}
       <Box mb={2} display="flex" flexWrap="wrap" gap={3}>
         {[
@@ -236,7 +225,9 @@ export default function ShipPage() {
         ))}
         <Select
           options={countryOptions}
-          value={countryOptions.find((c) => c.value === filters.flag)}
+          value={countryOptions.find(
+            (c: { value: string | undefined }) => c.value === filters.flag
+          )}
           onChange={(value) =>
             handleFilterChange({
               target: {
@@ -403,7 +394,6 @@ export default function ShipPage() {
         }}
         rowsPerPageOptions={[5, 10, 25, 50]}
       />
-
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>{isEdit ? "Edit Ship" : "Add New Ship"}</DialogTitle>
         <DialogContent>
@@ -435,7 +425,10 @@ export default function ShipPage() {
             <Box sx={{ zIndex: 1301, position: "relative" }}>
               <Select
                 options={countryOptions}
-                value={countryOptions.find((c) => c.value === form.flag)}
+                isClearable
+                value={countryOptions.find(
+                  (c: { value: string }) => c.value === form.flag
+                )}
                 onChange={(value) =>
                   handleFormChange({
                     target: {
@@ -470,8 +463,17 @@ export default function ShipPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
+          <Button
+            onClick={() => setOpen(false)}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
             Save
           </Button>
         </DialogActions>

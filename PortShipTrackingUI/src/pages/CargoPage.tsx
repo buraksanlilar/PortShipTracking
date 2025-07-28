@@ -18,6 +18,7 @@ import {
   TableRow,
   TextField,
   Checkbox,
+  Typography,
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import type { Cargo } from "../types/cargo";
@@ -97,17 +98,6 @@ export default function CargoPage() {
     setOpen(true);
   };
 
-  const handleEdit = () => {
-    if (selectedIds.length === 1) {
-      const cargo = cargoList.find((c) => c.cargoId === selectedIds[0]);
-      if (cargo) {
-        setForm(cargo);
-        setIsEdit(true);
-        setOpen(true);
-      }
-    }
-  };
-
   const handleDelete = async () => {
     for (const id of selectedIds) {
       await deleteCargo(id);
@@ -182,8 +172,10 @@ export default function CargoPage() {
   };
 
   return (
-    <Box p={3}>
-      <h1>Cargo Management</h1>
+    <Box>
+      <Typography variant="h4" gutterBottom fontWeight={"bold"}>
+        Cargo Management
+      </Typography>
 
       {/* Filters */}
       <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
@@ -205,7 +197,6 @@ export default function CargoPage() {
         />
 
         {[
-          { label: "Cargo ID", name: "cargoId", type: "number" },
           { label: "Description", name: "description" },
           { label: "Weight (Ton)", name: "weightTon", type: "number" },
           { label: "Type", name: "cargoType" },
@@ -220,6 +211,25 @@ export default function CargoPage() {
             onChange={handleFilterChange}
           />
         ))}
+        {/* Actions */}
+        <Box mb={2}>
+          <Button
+            variant="contained"
+            onClick={handleNew}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            New
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={selectedIds.length === 0}
+            onClick={handleOpenDeleteConfirmation}
+            sx={{ ml: 1 }}
+          >
+            Delete
+          </Button>
+        </Box>
       </Box>
 
       {/* Dialogs */}
@@ -253,41 +263,27 @@ export default function CargoPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Actions */}
-      <Box mb={2}>
-        <Button variant="contained" onClick={handleNew}>
-          New
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ ml: 1 }}
-          disabled={selectedIds.length !== 1}
-          onClick={handleEdit}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          sx={{ ml: 1 }}
-          disabled={selectedIds.length === 0}
-          onClick={handleOpenDeleteConfirmation}
-        >
-          Delete
-        </Button>
-      </Box>
-
       {/* Table */}
       <TableContainer component={Paper}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ bgcolor: "#456882" }}>
             <TableRow>
               <TableCell />
-              <TableCell>Cargo ID</TableCell>
-              <TableCell>Ship</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Weight (Ton)</TableCell>
-              <TableCell>Type</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Ship
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Description
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Weight (Ton)
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Type
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -299,7 +295,6 @@ export default function CargoPage() {
                     onChange={() => handleCheckbox(cargo.cargoId)}
                   />
                 </TableCell>
-                <TableCell>{cargo.cargoId}</TableCell>
                 <TableCell>
                   {(ships.find((s) => s.shipId === cargo.shipId)?.name || "") +
                     (" " + cargo.shipId) || cargo.shipId}
@@ -307,6 +302,19 @@ export default function CargoPage() {
                 <TableCell>{cargo.description}</TableCell>
                 <TableCell>{cargo.weightTon}</TableCell>
                 <TableCell>{cargo.cargoType}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setForm(cargo);
+                      setIsEdit(true);
+                      setOpen(true);
+                    }}
+                    sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -331,6 +339,7 @@ export default function CargoPage() {
         <DialogTitle>{isEdit ? "Edit Cargo" : "Add New Cargo"}</DialogTitle>
         <DialogContent>
           <Autocomplete
+            disablePortal
             options={ships}
             getOptionLabel={(option) => `${option.name} (ID: ${option.shipId})`}
             value={ships.find((s) => s.shipId === form.shipId) || null}
@@ -372,8 +381,17 @@ export default function CargoPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
+          <Button
+            onClick={() => setOpen(false)}
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{ bgcolor: "#456882", color: "white" }}
+          >
             Save
           </Button>
         </DialogActions>

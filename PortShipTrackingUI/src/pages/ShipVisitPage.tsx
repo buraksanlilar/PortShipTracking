@@ -7,10 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Snackbar,
   Table,
   TableBody,
@@ -21,6 +18,7 @@ import {
   TextField,
   Checkbox,
   TablePagination,
+  Typography,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -36,6 +34,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import "dayjs/locale/tr";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -241,17 +240,6 @@ export default function ShipVisitPage() {
     setSnackbarOpen(true);
   };
 
-  const handleEdit = () => {
-    if (selectedIds.length === 1) {
-      const visit = visits.find((v) => v.visitId === selectedIds[0]);
-      if (visit) {
-        setForm(visit);
-        setIsEdit(true);
-        setOpen(true);
-      }
-    }
-  };
-
   const handleNew = () => {
     setForm(defaultForm);
     setIsEdit(false);
@@ -259,14 +247,15 @@ export default function ShipVisitPage() {
   };
 
   return (
-    <Box p={3}>
-      <h1 style={{ marginBottom: 16 }}>Ship Visit Management</h1>
+    <Box>
+      <Typography variant="h4" gutterBottom fontWeight={"bold"}>
+        Ship Visit Management
+      </Typography>
 
       {/* Filters */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box mb={2} display="flex" flexWrap="wrap" gap={2}>
           {[
-            { label: "Visit ID", name: "visitId", type: "number" },
             { label: "Ship ID", name: "shipId", type: "number" },
             {
               label: "Ship Name",
@@ -350,7 +339,7 @@ export default function ShipVisitPage() {
             <DateTimePicker
               key={name}
               label={label}
-              format="DD.MM.YYYY HH:mm"
+              format="DD.MM.YYYY"
               value={
                 dayjs.isDayjs(filters[name as keyof typeof filters])
                   ? (filters[name as keyof typeof filters] as dayjs.Dayjs)
@@ -390,42 +379,51 @@ export default function ShipVisitPage() {
               {...otherProps}
             />
           ))}
+          {/* Actions */}
+          <Box display="flex" mb={2}>
+            <Button
+              sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+              onClick={handleNew}
+              variant="contained"
+            >
+              New
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => setOpenDelete(true)}
+              disabled={selectedIds.length === 0}
+            >
+              Delete
+            </Button>
+          </Box>
         </Box>
       </LocalizationProvider>
 
-      {/* Actions */}
-      <Box display="flex" gap={2} mb={2}>
-        <Button variant="contained" onClick={handleNew}>
-          New
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleEdit}
-          disabled={selectedIds.length !== 1}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => setOpenDelete(true)}
-          disabled={selectedIds.length === 0}
-        >
-          Delete
-        </Button>
-      </Box>
       {/* Table */}
       <TableContainer component={Paper}>
         <Table>
-          <TableHead>
+          <TableHead sx={{ bgcolor: "#456882" }}>
             <TableRow>
               <TableCell />
-              <TableCell>Visit ID</TableCell>
-              <TableCell>Ship</TableCell>
-              <TableCell>Port</TableCell>
-              <TableCell>Arrival</TableCell>
-              <TableCell>Departure</TableCell>
-              <TableCell>Purpose</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Ship
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Port
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Arrival
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Departure
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Purpose
+              </TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -437,7 +435,6 @@ export default function ShipVisitPage() {
                     onChange={() => handleCheckbox(v.visitId)}
                   />
                 </TableCell>
-                <TableCell>{v.visitId}</TableCell>
                 <TableCell>
                   {(ships.find((s) => s.shipId === v.shipId)?.name || "") +
                     (" " + v.shipId) || v.shipId}
@@ -471,6 +468,19 @@ export default function ShipVisitPage() {
                 </TableCell>
 
                 <TableCell>{v.purpose}</TableCell>
+                <TableCell>
+                  <Button
+                    sx={{ bgcolor: "#456882", color: "white" }}
+                    variant="outlined"
+                    onClick={() => {
+                      setForm(v);
+                      setIsEdit(true);
+                      setOpen(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -494,42 +504,42 @@ export default function ShipVisitPage() {
         <DialogTitle>{isEdit ? "Edit Visit" : "Add Visit"}</DialogTitle>
         <DialogContent>
           <FormControl fullWidth margin="dense">
-            <InputLabel>Ship</InputLabel>
-            <Select
-              name="shipId"
-              value={form.shipId}
-              onChange={handleFormChange}
-            >
-              {ships.map((s) => (
-                <MenuItem key={s.shipId} value={s.shipId}>
-                  {s.name}
-                </MenuItem>
-              ))}
-            </Select>
+            <Autocomplete
+              options={ships}
+              getOptionLabel={(option) => option.name}
+              value={ships.find((s) => s.shipId === form.shipId) || null}
+              onChange={(_, newValue) => {
+                setForm((prev) => ({
+                  ...prev,
+                  shipId: newValue ? newValue.shipId : 0,
+                }));
+              }}
+              renderInput={(params) => (
+                <TextField {...params} label="Ship" fullWidth margin="dense" />
+              )}
+            />
           </FormControl>
           <FormControl fullWidth margin="dense">
-            <InputLabel>Port</InputLabel>
-            <Select
-              name="portId"
-              value={form.portId}
-              onChange={(event) =>
-                handleFormChange({
-                  target: { name: "portId", value: event.target.value },
-                })
-              }
-            >
-              {ports.map((p) => (
-                <MenuItem key={p.portId} value={p.portId}>
-                  {p.name}
-                </MenuItem>
-              ))}
-            </Select>
+            <Autocomplete
+              options={ports}
+              getOptionLabel={(option) => option.name}
+              value={ports.find((p) => p.portId === form.portId) || null}
+              onChange={(_, newValue) => {
+                setForm((prev) => ({
+                  ...prev,
+                  portId: newValue ? newValue.portId : 0,
+                }));
+              }}
+              renderInput={(params) => (
+                <TextField {...params} label="Port" fullWidth margin="dense" />
+              )}
+            />
           </FormControl>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
+            <DatePicker
               label="Arrival Date & Time"
-              format="DD.MM.YYYY HH:mm"
+              format="DD.MM.YYYY"
               value={form.arrivalDate ? dayjs(form.arrivalDate) : null}
               onChange={(value) =>
                 setForm((prev) => ({
@@ -546,9 +556,9 @@ export default function ShipVisitPage() {
               }}
             />
 
-            <DateTimePicker
+            <DatePicker
               label="Departure Date & Time"
-              format="DD.MM.YYYY HH:mm"
+              format="DD.MM.YYYY"
               value={form.departureDate ? dayjs(form.departureDate) : null}
               onChange={(value) =>
                 setForm((prev) => ({
@@ -576,8 +586,17 @@ export default function ShipVisitPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
+          <Button
+            onClick={() => setOpen(false)}
+            sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+          >
             Save
           </Button>
         </DialogActions>

@@ -17,6 +17,7 @@ import {
   TableRow,
   TextField,
   Paper,
+  Typography,
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -114,27 +115,11 @@ export default function ShipCrewAssignmentPage() {
     setForm({ ...form, [name]: value });
   };
   */
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
-    setPage(0);
-  };
 
   const handleNew = () => {
     setForm(defaultForm);
     setIsEdit(false);
     setOpen(true);
-  };
-
-  const handleEdit = () => {
-    if (selectedIds.length === 1) {
-      const record = assignments.find((a) => a.assignmentId === selectedIds[0]);
-      if (record) {
-        setForm({ ...record });
-        setIsEdit(true);
-        setOpen(true);
-      }
-    }
   };
 
   const handleDelete = async () => {
@@ -173,8 +158,10 @@ export default function ShipCrewAssignmentPage() {
   };
 
   return (
-    <Box p={3}>
-      <h1>Ship Crew Assignments</h1>
+    <Box>
+      <Typography variant="h4" gutterBottom fontWeight={"bold"}>
+        Ship Crew Assignments
+      </Typography>
       {
         // Filters Section
       }
@@ -187,16 +174,6 @@ export default function ShipCrewAssignmentPage() {
           alignItems="center"
           justifyContent="flex-start"
         >
-          <TextField
-            label="Assignment ID"
-            name="assignmentId"
-            size="small"
-            type="number"
-            value={filters.assignmentId ?? ""}
-            onChange={handleFilterChange}
-            sx={{ minWidth: 200, flexGrow: 1 }}
-          />
-
           <Autocomplete
             options={ships}
             getOptionLabel={(option) => `${option.shipId} - ${option.name}`}
@@ -257,41 +234,36 @@ export default function ShipCrewAssignmentPage() {
             }}
             slotProps={{ textField: { size: "small", sx: { minWidth: 220 } } }}
           />
+          <Box mb={2}>
+            <Button
+              variant="contained"
+              onClick={handleNew}
+              sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+            >
+              New
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              sx={{ ml: 1 }}
+              disabled={selectedIds.length === 0}
+              onClick={handleDelete}
+            >
+              Delete
+            </Button>
+          </Box>
         </Box>
       </LocalizationProvider>
-
-      <Box mb={2}>
-        <Button variant="contained" onClick={handleNew}>
-          New
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ ml: 1 }}
-          disabled={selectedIds.length !== 1}
-          onClick={handleEdit}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          sx={{ ml: 1 }}
-          disabled={selectedIds.length === 0}
-          onClick={handleDelete}
-        >
-          Delete
-        </Button>
-      </Box>
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell />
-              <TableCell>Assignment ID</TableCell>
               <TableCell>Ship</TableCell>
               <TableCell>Crew Member</TableCell>
               <TableCell>Date</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -303,11 +275,24 @@ export default function ShipCrewAssignmentPage() {
                     onChange={() => handleCheckbox(row.assignmentId)}
                   />
                 </TableCell>
-                <TableCell>{row.assignmentId}</TableCell>
                 <TableCell>{getShipLabel(row.shipId)}</TableCell>
                 <TableCell>{getCrewLabel(row.crewId)}</TableCell>
                 <TableCell>
                   {new Date(row.assignmentDate).toLocaleDateString("tr-TR")}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    sx={{ mr: 1, bgcolor: "#456882", color: "white" }}
+                    onClick={() => {
+                      setForm(row);
+                      setIsEdit(true);
+                      setOpen(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
